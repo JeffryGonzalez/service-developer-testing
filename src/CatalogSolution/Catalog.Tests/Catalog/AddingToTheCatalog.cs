@@ -1,13 +1,41 @@
 ﻿
 
+using Alba;
+using Catalog.Api.Catalog;
+
+
 namespace Catalog.Tests.Catalog;
 public class AddingToTheCatalog
 {
 
     [Fact]
-    public void DoIt()
+    public async Task DoIt()
     {
-        // a test that lets add things to the catalog.
-        // when I do an HTTP POst to some resource in our API with some entity (body) then I get a response with the following.
+        using var host = await AlbaHost.For<global::Program>();
+        var newCatalogItem = new CreateCatalogItemRequest
+        {
+            Version = "1.91",
+            IsCommercial = true,
+            AnnualCostPerSeat = 2.99M
+        };
+
+        var expectedResponse = new CatalogItemResponse
+        {
+            Vendor = "microsoft",
+            Application = "vscode",
+            AnnualCostPerSeat = 2.99M,
+            Version = "1.91"
+        };
+        var response = await host.Scenario(api =>
+         {
+             api.Post.Json(newCatalogItem).ToUrl("/catalog/microsoft/vscode");
+             api.StatusCodeShouldBe(201);
+         });
+
+        var body = await response.ReadAsJsonAsync<CatalogItemResponse>();
+        Assert.NotNull(body);
+
+        Assert.Equal(expectedResponse, body);
+
     }
 }

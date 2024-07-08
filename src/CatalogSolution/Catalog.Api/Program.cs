@@ -1,3 +1,5 @@
+using Catalog.Api.Catalog;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
@@ -13,6 +15,8 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
-
+// Todo: Talk about Feature Flags Tomorrow.
+app.MapCatalog();
 app.Run();
 
+public partial class Program { }
