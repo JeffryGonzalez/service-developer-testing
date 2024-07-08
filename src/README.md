@@ -18,12 +18,12 @@ They can search software by:
 Members of the SoftwareControl team can add new items to the catalog.
 
 Items have -
-Vendor
-Application
-Version
-Commercial or FOSS
-If it is commercial, the annual projected cost per seat.
-The Sub of the SoftwareControl person that added it, and the date and time it was added.
+- Vendor
+- Application
+- Version
+- Commercial or FOSS
+    - If it is commercial, the annual projected cost per seat.
+    - The Sub of the SoftwareControl person that added it, and the date and time it was added.
 
 (When we share this data, just share the vendor, the application, the version, and if it is a commercial, the cost,
 The Sub and datetime it was created is for internal use only)
