@@ -15,13 +15,21 @@ public static class ApiExtensions
         return routes;
     }
 
-    public static async Task<Ok<CatalogItemResponse>> GetItemAsync(string vendor,
-        string application, string version, IDocumentSession session)
+    public static async Task<Results<Ok<CatalogItemResponse>, NotFound>> GetItemAsync(string vendor,
+        string application, string version, IDocumentSession session,
+        INormalizeUrlSegments segmentNormalizer)
     {
+        var normalizedApplication = segmentNormalizer.Normalize(application);
+
         var entity = await session.Query<CatalogItemEntity>()
             .Where(c => c.Vendor == vendor && c.Application == application && c.Version == version)
             .SingleOrDefaultAsync();
         // if the entity is null, return a 404.
+
+        if (entity is null)
+        {
+            return TypedResults.NotFound();
+        }
         var response = new CatalogItemResponse
         {
             Vendor = entity.Vendor,
@@ -62,7 +70,7 @@ public static class ApiExtensions
         };
         session.Store(entity);
         await session.SaveChangesAsync();
-        return TypedResults.Created("slime", response);
+        return TypedResults.Created($"/catalog/{vendor}/{application}/{entity.Version}", response);
     }
 }
 

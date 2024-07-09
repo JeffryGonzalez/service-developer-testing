@@ -39,6 +39,8 @@ public class AddingToTheCatalog : IClassFixture<CatalogFixture>
              api.StatusCodeShouldBe(201);
          });
 
+        var locationHeader = postResponse.Context.Response.Headers["location"].Single();
+        Assert.NotNull(locationHeader);
         var postBody = await postResponse.ReadAsJsonAsync<CatalogItemResponse>();
         Assert.NotNull(postBody);
 
@@ -46,7 +48,7 @@ public class AddingToTheCatalog : IClassFixture<CatalogFixture>
 
         var getResponse = await _host.Scenario(api =>
         {
-            api.Get.Url("/catalog/microsoft/visualstudio/1.91");
+            api.Get.Url(locationHeader);
             api.StatusCodeShouldBeOk();
         });
 
@@ -54,5 +56,15 @@ public class AddingToTheCatalog : IClassFixture<CatalogFixture>
 
         Assert.Equal(postBody, getBody);
 
+    }
+
+    [Fact]
+    public async Task GettingAnItemThatIsntInTheCatalog()
+    {
+        await _host.Scenario(api =>
+        {
+            api.Get.Url("/catalog/microsoft/vscode/1.17");
+            api.StatusCodeShouldBe(404);
+        });
     }
 }
