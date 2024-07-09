@@ -12,11 +12,12 @@ var app = builder.Build();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
+
+    app.MapCatalog();
 }
+app.UseSwagger();
+app.UseSwaggerUI();
 // Todo: Talk about Feature Flags Tomorrow.
-app.MapCatalog();
 app.Run();
 
 public partial class Program { }
