@@ -22,13 +22,13 @@ public class AddingToTheCatalog
         var expectedResponse = new CatalogItemResponse
         {
             Vendor = "microsoft",
-            Application = "vscode",
+            Application = "visualstudio",
             AnnualCostPerSeat = 2.99M,
             Version = "1.91"
         };
         var postResponse = await host.Scenario(api =>
          {
-             api.Post.Json(newCatalogItem).ToUrl("/catalog/microsoft/vscode");
+             api.Post.Json(newCatalogItem).ToUrl("/catalog/microsoft/visualstudio");
              api.StatusCodeShouldBe(201);
          });
 
@@ -39,7 +39,7 @@ public class AddingToTheCatalog
 
         var getResponse = await host.Scenario(api =>
         {
-            api.Get.Url("/catalog/microsoft/vscode/1.91");
+            api.Get.Url("/catalog/microsoft/visualstudio/1.91");
             api.StatusCodeShouldBeOk();
         });
 

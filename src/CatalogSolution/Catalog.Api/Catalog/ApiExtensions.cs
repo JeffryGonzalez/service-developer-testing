@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http.HttpResults;
+﻿using Marten;
+using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace Catalog.Api.Catalog;
 
@@ -14,14 +15,29 @@ public static class ApiExtensions
         return routes;
     }
 
-    public static async Task<Ok<CatalogItemResponse>> GetItemAsync()
+    public static async Task<Ok<CatalogItemResponse>> GetItemAsync(string vendor,
+        string application, string version, IDocumentSession session)
     {
-        return TypedResults.Ok(new CatalogItemResponse());
+        var entity = await session.Query<CatalogItemEntity>()
+            .Where(c => c.Vendor == vendor && c.Application == application && c.Version == version)
+            .SingleOrDefaultAsync();
+        // if the entity is null, return a 404.
+        var response = new CatalogItemResponse
+        {
+            Vendor = entity.Vendor,
+            Application = entity.Application,
+            Version = entity.Version,
+            AnnualCostPerSeat = entity.AnnualCostPerSeat
+
+        };
+        return TypedResults.Ok(response);
     }
 
-    public static async Task<Created<CatalogItemResponse>> AddItemAsync(CreateCatalogItemRequest request,
+    public static async Task<Created<CatalogItemResponse>> AddItemAsync(
+        CreateCatalogItemRequest request,
         string vendor,
         string application,
+        IDocumentSession session,
         CancellationToken token)
 
     {
@@ -33,6 +49,19 @@ public static class ApiExtensions
             Version = request.Version,
 
         };
+        // Save it to the database
+        var entity = new CatalogItemEntity
+        {
+            Id = Guid.NewGuid(),
+            Vendor = response.Vendor,
+            Application = application,
+            Version = response.Version,
+            AnnualCostPerSeat = response.AnnualCostPerSeat,
+            IsCommercial = request.IsCommercial,
+
+        };
+        session.Store(entity);
+        await session.SaveChangesAsync();
         return TypedResults.Created("slime", response);
     }
 }
