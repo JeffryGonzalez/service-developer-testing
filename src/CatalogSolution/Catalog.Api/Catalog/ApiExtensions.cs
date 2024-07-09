@@ -9,7 +9,14 @@ public static class ApiExtensions
         var group = routes.MapGroup("/catalog/");
 
         group.MapPost("/{vendor}/{application}", AddItemAsync);
+
+        group.MapGet("/{vendor}/{application}/{version}", GetItemAsync);
         return routes;
+    }
+
+    public static async Task<Ok<CatalogItemResponse>> GetItemAsync()
+    {
+        return TypedResults.Ok(new CatalogItemResponse());
     }
 
     public static async Task<Created<CatalogItemResponse>> AddItemAsync(CreateCatalogItemRequest request,
