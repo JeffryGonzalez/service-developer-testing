@@ -5,13 +5,20 @@ using Catalog.Api.Catalog;
 
 
 namespace Catalog.Tests.Catalog;
-public class AddingToTheCatalog
+public class AddingToTheCatalog : IClassFixture<CatalogFixture>
 {
+
+    private IAlbaHost _host;
+    public AddingToTheCatalog(CatalogFixture fixture)
+    {
+        _host = fixture.Host;
+    }
+
 
     [Fact]
     public async Task DoIt()
     {
-        using var host = await AlbaHost.For<global::Program>();
+
         var newCatalogItem = new CreateCatalogItemRequest
         {
             Version = "1.91",
@@ -26,7 +33,7 @@ public class AddingToTheCatalog
             AnnualCostPerSeat = 2.99M,
             Version = "1.91"
         };
-        var postResponse = await host.Scenario(api =>
+        var postResponse = await _host.Scenario(api =>
          {
              api.Post.Json(newCatalogItem).ToUrl("/catalog/microsoft/visualstudio");
              api.StatusCodeShouldBe(201);
@@ -37,7 +44,7 @@ public class AddingToTheCatalog
 
         Assert.Equal(expectedResponse, postBody);
 
-        var getResponse = await host.Scenario(api =>
+        var getResponse = await _host.Scenario(api =>
         {
             api.Get.Url("/catalog/microsoft/visualstudio/1.91");
             api.StatusCodeShouldBeOk();
