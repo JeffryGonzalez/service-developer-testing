@@ -21,7 +21,7 @@ public static class ApiExtensions
     {
         var slugs = slugger.NormalizeForCatalog(vendor, application, version);
         // Write the Code You Wish You Had
-        var locationSlug = $"/catalog/{slugs.NormalizedVendor}/{slugs.NormalizedApplication}/{slugs.NormalizedVersion}";
+        var locationSlug = slugs.GetLocationSlug();
 
         // this will get better in a second
         //var entity = await session.Query<CatalogItemEntity>()
@@ -67,7 +67,7 @@ public static class ApiExtensions
 
         };
         // Save it to the database
-        var locationSlug = $"/catalog/{slugs.NormalizedVendor}/{slugs.NormalizedApplication}/{slugs.NormalizedVersion}";
+        var locationSlug = slugs.GetLocationSlug();
         var entity = new CatalogItemEntity
         {
             Id = Guid.NewGuid(),
