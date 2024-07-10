@@ -1,4 +1,5 @@
-﻿using Marten;
+﻿using FluentValidation;
+using Marten;
 using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace Catalog.Api.Catalog;
@@ -48,15 +49,24 @@ public static class ApiExtensions
         return TypedResults.Ok(response);
     }
 
-    public static async Task<Created<CatalogItemResponse>> AddItemAsync(
+    public static async Task<Results<Created<CatalogItemResponse>,
+        BadRequest<IDictionary<string, string[]>>>>
+        AddItemAsync(
+
         CreateCatalogItemRequest request,
         string vendor,
         string application,
         INormalizeUrlSegmentsForTheCatalog slugger,
         IDocumentSession session,
-        CancellationToken token)
+        CancellationToken token,
+        IValidator<CreateCatalogItemRequest> validator)
 
     {
+        var validations = await validator.ValidateAsync(request);
+        if (!validations.IsValid)
+        {
+            return TypedResults.BadRequest(validations.ToDictionary());
+        }
         var slugs = slugger.NormalizeForCatalog(vendor, application, request.Version);
         var response = new CatalogItemResponse()
         {
