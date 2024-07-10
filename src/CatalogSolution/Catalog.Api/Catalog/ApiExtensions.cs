@@ -11,7 +11,7 @@ public static class ApiExtensions
 
         group.MapPost("/{vendor}/{application}", AddItemAsync);
 
-        group.MapGet("/{vendor}/{application}/{version}", GetItemAsync);
+        group.MapGet("/{vendor:regex(^[a-zA-Z]+$)}/{application}/{version}", GetItemAsync);
         return routes;
     }
 
@@ -66,6 +66,14 @@ public static class ApiExtensions
             Version = slugs.NormalizedVersion
 
         };
+        // If it isn't free, then check the budget to see if we have enough money,
+        // if we don't, return a 400 with an explanation.
+        if (request.IsCommercial && request.AnnualCostPerSeat > 0)
+        {
+            // Call another API, and ask if we have enough money.
+            // If it says yes, cool,
+            // if not, return a 400 saying we can't afford this.
+        }
         // Save it to the database
         var locationSlug = slugs.GetLocationSlug();
         var entity = new CatalogItemEntity

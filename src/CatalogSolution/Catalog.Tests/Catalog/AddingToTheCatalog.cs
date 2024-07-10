@@ -67,4 +67,6 @@ public class AddingToTheCatalog : IClassFixture<CatalogFixture>
             api.StatusCodeShouldBe(404);
         });
     }
+
+
 }
