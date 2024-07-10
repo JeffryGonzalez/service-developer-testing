@@ -2,11 +2,14 @@
 
 
 using Alba;
+using Alba.Security;
 using Catalog.Api.Catalog;
 using Microsoft.Extensions.DependencyInjection;
 using NSubstitute;
 using NSubstitute.ExceptionExtensions;
+using System.Security.Claims;
 using Testcontainers.PostgreSql;
+using WireMock.Server;
 
 namespace Catalog.Tests.Catalog;
 public class CatalogFixture : IAsyncLifetime
@@ -18,22 +21,38 @@ public class CatalogFixture : IAsyncLifetime
         .WithDatabase("catalog")
         .WithPassword("password")
         .Build();
+
+    public WireMockServer MockApiServer = null!;
+
     public async Task InitializeAsync()
     {
+        MockApiServer = WireMockServer.Start();
         await _postgresContainer.StartAsync();
+        var fakeIdentity = new AuthenticationStub().With(
+            new System.Security.Claims.Claim(ClaimTypes.Role, "SoftwareCenter"));
 
         Host = await AlbaHost.For<global::Program>(config =>
         {
             var connectionString = _postgresContainer.GetConnectionString();
             config.UseSetting("ConnectionStrings:data",
                connectionString);
+            config.UseSetting("budgetingApiUrl", MockApiServer.Url);
             config.ConfigureServices((sp) =>
             {
                 ConfigureMyServices(sp);
 
+                var fakeDatabaseThing = Substitute.For<ILookupDatabaseStuff>();
+                fakeDatabaseThing.GetValueFromSomeOtherDatabaseAsync().Returns("this is bogus");
+
+                // BOGUS, BS, NOT REAL TESTING. BUT THIS IS BETTER THAN USING OTHER PEOPLES
+                // SERVICES IN SYSTEMS TESTS.
+                sp.AddScoped<ILookupDatabaseStuff>(_ => fakeDatabaseThing);
+
+
+
             });
 
-        });
+        }, fakeIdentity);
 
     }
 
@@ -44,6 +63,8 @@ public class CatalogFixture : IAsyncLifetime
 
     public async Task DisposeAsync()
     {
+        MockApiServer.Stop();
+        MockApiServer?.Dispose();
         await Host.DisposeAsync();
         await _postgresContainer.DisposeAsync();
     }

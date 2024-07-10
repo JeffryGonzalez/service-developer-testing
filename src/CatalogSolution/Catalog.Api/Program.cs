@@ -8,7 +8,10 @@ using Microsoft.FeatureManagement;
 var builder = WebApplication.CreateBuilder(args);
 //TODO: 4. Add Auth.
 builder.Services.AddAuthentication().AddJwtBearer();
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorizationBuilder().AddPolicy("IsSoftwareCenter", policy =>
+{
+    policy.RequireRole("SoftwareCenter");
+});
 
 builder.Services.AddFeatureManagement();
 // Add services to the container.
@@ -16,7 +19,18 @@ builder.Services.AddFeatureManagement();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<INormalizeUrlSegmentsForTheCatalog, BasicSegmentNormalizer>();
-//TODO: 1. Validations
+builder.Services.AddScoped<ILookupDatabaseStuff, ExternalDatabaseThing>();
+var bugetingUrl = builder.Configuration.GetValue<string>("budgetingApiUrl") ?? throw new Exception("No Url for Budgeting");
+builder.Services.AddHttpClient<BudgetingHttp>(client =>
+{
+
+    client.BaseAddress = new Uri(bugetingUrl);
+});
+builder.Services.AddScoped<ICheckForBudgets>(sc =>
+{
+    return sc.GetRequiredService<BudgetingHttp>();
+});
+
 builder.Services.AddValidatorsFromAssemblyContaining<CreateCatalogItemRequestValidator>();
 builder.Services.AddFluentValidationRulesToSwagger();
 

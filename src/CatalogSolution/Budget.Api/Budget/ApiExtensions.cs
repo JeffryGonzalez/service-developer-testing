@@ -1,5 +1,6 @@
 ﻿
 
+using CatalogTypes.Bugeting;
 using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace Budget.Api.Budget;
@@ -40,11 +41,7 @@ public static class ApiExtensions
 }
 
 
-public record AllocateBudgetFor
-{
-    public string Vendor { get; set; } = string.Empty;
-    public decimal AnnualCostPerSeat { get; set; }
-}
+
 
 public record GetBudgetResponse
 {

@@ -12,7 +12,10 @@ services:
       - ./db/:/docker-entrypoint-initdb.d/
     ports:
       - 5439:5432
-
+  budgetApi:
+    image: jeffrygonzalez/budget-api:latest
+    ports:
+      - 1338:8080
   adminer:
     image: adminer
     restart: always

@@ -11,19 +11,23 @@ public static class ApiExtensions
         var group = routes.MapGroup("/catalog/");
 
         group.MapPost("/{vendor}/{application}", AddItemAsync);
+        // .RequireAuthorization(); // TODO: Fix This.
 
         group.MapGet("/{vendor:regex(^[a-zA-Z]+$)}/{application}/{version}", GetItemAsync);
+        //.RequireAuthorization("IsSoftwareCenter");
         return routes;
     }
 
     public static async Task<Results<Ok<CatalogItemResponse>, NotFound>> GetItemAsync(string vendor,
         string application, string version, IDocumentSession session,
-        INormalizeUrlSegmentsForTheCatalog slugger)
+        INormalizeUrlSegmentsForTheCatalog slugger,
+        ILookupDatabaseStuff databaseLookup
+        )
     {
         var slugs = slugger.NormalizeForCatalog(vendor, application, version);
         // Write the Code You Wish You Had
         var locationSlug = slugs.GetLocationSlug();
-
+        var thing = await databaseLookup.GetValueFromSomeOtherDatabaseAsync();
         // this will get better in a second
         //var entity = await session.Query<CatalogItemEntity>()
         //    .Where(c => c.Vendor == slugs.NormalizedVendor
@@ -49,8 +53,13 @@ public static class ApiExtensions
         return TypedResults.Ok(response);
     }
 
-    public static async Task<Results<Created<CatalogItemResponse>,
-        BadRequest<IDictionary<string, string[]>>>>
+    public static async Task<
+        Results<
+            Created<CatalogItemResponse>,
+            BadRequest<IDictionary<string, string[]>>
+            , BadRequest<string>>
+        >
+
         AddItemAsync(
 
         CreateCatalogItemRequest request,
@@ -59,11 +68,11 @@ public static class ApiExtensions
         INormalizeUrlSegmentsForTheCatalog slugger,
         IDocumentSession session,
         CancellationToken token,
-        IValidator<CreateCatalogItemRequest> validator)
+        IValidator<CreateCatalogItemRequest> validator,
+        ICheckForBudgets budgetChecker)
 
     {
-        //TODO: 2.Validating
-        //TODO: 3. How To Test This?
+
         var validations = await validator.ValidateAsync(request);
         if (!validations.IsValid)
         {
@@ -80,11 +89,10 @@ public static class ApiExtensions
         };
         // If it isn't free, then check the budget to see if we have enough money,
         // if we don't, return a 400 with an explanation.
-        if (request.IsCommercial && request.AnnualCostPerSeat > 0)
+        bool hasBudget = await budgetChecker.HasAdequateFundingFor(response);
+        if (!hasBudget)
         {
-            // Call another API, and ask if we have enough money.
-            // If it says yes, cool,
-            // if not, return a 400 saying we can't afford this.
+            return TypedResults.BadRequest("Not Enough Money In The Budget For This");
         }
         // Save it to the database
         var locationSlug = slugs.GetLocationSlug();
@@ -108,7 +116,7 @@ public static class ApiExtensions
 public record CreateCatalogItemRequest
 {
 
-    public string Version { get; set; } = string.Empty;
+    public string Version { get; set; } = "";
     public bool IsCommercial { get; set; }
     public decimal AnnualCostPerSeat { get; set; }
 }
@@ -118,7 +126,7 @@ public record CatalogItemResponse
     public string Vendor { get; set; } = string.Empty;
     public string Application { get; set; } = string.Empty;
     public string Version { get; set; } = string.Empty;
-    public decimal? AnnualCostPerSeat { get; set; }
+    public decimal AnnualCostPerSeat { get; set; }
 }
 
 /*- Vendor

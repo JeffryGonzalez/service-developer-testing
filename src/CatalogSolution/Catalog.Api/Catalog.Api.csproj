@@ -16,6 +16,11 @@
     <PackageReference Include="Microsoft.FeatureManagement.AspNetCore" Version="3.4.0" />
     <PackageReference Include="Slugify.Core" Version="4.0.1" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.6.2" />
+    <PackageReference Include="WireMock.Net.FluentAssertions" Version="1.5.60" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\CatalogTypes\CatalogTypes.csproj" />
   </ItemGroup>
 
 </Project>

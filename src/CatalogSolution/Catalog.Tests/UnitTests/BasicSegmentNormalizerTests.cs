@@ -6,6 +6,7 @@ namespace Catalog.Tests.UnitTests;
 public class BasicSegmentNormalizerTests
 {
     [Theory]
+    [Trait("Unit", "Shared")]
     [InlineData("Microsoft", "microsoft")]
     [InlineData("VisualStudio", "visualstudio")]
     [InlineData("Visual Studio", "visual-studio")]

@@ -8,6 +8,7 @@ public class NormalizingForTheCatalog
 
 
     [Fact]
+    [Trait("Unit", "Catalog")]
     public void CanNormalizeForCatalog()
     {
         INormalizeUrlSegmentsForTheCatalog sut = new BasicSegmentNormalizer();
