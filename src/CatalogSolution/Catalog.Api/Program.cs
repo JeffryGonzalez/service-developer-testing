@@ -1,4 +1,5 @@
 using Catalog.Api.Catalog;
+using Catalog.Api.Shared;
 using Marten;
 using Microsoft.FeatureManagement;
 
@@ -8,9 +9,10 @@ builder.Services.AddFeatureManagement();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddScoped<INormalizeUrlSegmentsForTheCatalog, BasicSegmentNormalizer>();
 
-var connectionString = builder.Configuration.GetConnectionString("data")
-    ?? throw new Exception("Couldn't find connection string in environment. Bailing");
+
+var connectionString = builder.Configuration.GetConnectionString("data") ?? throw new Exception("Couldn't find connection string in environment. Bailing");
 
 builder.Services.AddMarten(config =>
 {
@@ -23,11 +25,11 @@ var app = builder.Build();
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
+
 
 }
-
+app.UseSwagger();
+app.UseSwaggerUI();
 // Todo: Talk about Feature Flags Tomorrow.
 if (await app.Services.GetRequiredService<IFeatureManager>().IsEnabledAsync("Catalog"))
 {

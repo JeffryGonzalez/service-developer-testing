@@ -17,13 +17,20 @@ public static class ApiExtensions
 
     public static async Task<Results<Ok<CatalogItemResponse>, NotFound>> GetItemAsync(string vendor,
         string application, string version, IDocumentSession session,
-        INormalizeUrlSegments segmentNormalizer)
+        INormalizeUrlSegmentsForTheCatalog slugger)
     {
-        var normalizedApplication = segmentNormalizer.Normalize(application);
+        var slugs = slugger.NormalizeForCatalog(vendor, application, version);
+        // Write the Code You Wish You Had
+        var locationSlug = $"/catalog/{slugs.NormalizedVendor}/{slugs.NormalizedApplication}/{slugs.NormalizedVersion}";
 
+        // this will get better in a second
+        //var entity = await session.Query<CatalogItemEntity>()
+        //    .Where(c => c.Vendor == slugs.NormalizedVendor
+        //    && c.Application == slugs.NormalizedApplication &&
+        //    c.Version == slugs.NormalizedVersion)
+        //    .SingleOrDefaultAsync();
         var entity = await session.Query<CatalogItemEntity>()
-            .Where(c => c.Vendor == vendor && c.Application == application && c.Version == version)
-            .SingleOrDefaultAsync();
+            .Where(c => c.Slug == locationSlug).SingleOrDefaultAsync();
         // if the entity is null, return a 404.
 
         if (entity is null)
@@ -45,19 +52,22 @@ public static class ApiExtensions
         CreateCatalogItemRequest request,
         string vendor,
         string application,
+        INormalizeUrlSegmentsForTheCatalog slugger,
         IDocumentSession session,
         CancellationToken token)
 
     {
+        var slugs = slugger.NormalizeForCatalog(vendor, application, request.Version);
         var response = new CatalogItemResponse()
         {
             AnnualCostPerSeat = request.AnnualCostPerSeat,
-            Application = application,
-            Vendor = vendor,
-            Version = request.Version,
+            Application = slugs.NormalizedApplication,
+            Vendor = slugs.NormalizedVendor,
+            Version = slugs.NormalizedVersion
 
         };
         // Save it to the database
+        var locationSlug = $"/catalog/{slugs.NormalizedVendor}/{slugs.NormalizedApplication}/{slugs.NormalizedVersion}";
         var entity = new CatalogItemEntity
         {
             Id = Guid.NewGuid(),
@@ -66,11 +76,12 @@ public static class ApiExtensions
             Version = response.Version,
             AnnualCostPerSeat = response.AnnualCostPerSeat,
             IsCommercial = request.IsCommercial,
+            Slug = locationSlug
 
         };
         session.Store(entity);
         await session.SaveChangesAsync();
-        return TypedResults.Created($"/catalog/{vendor}/{application}/{entity.Version}", response);
+        return TypedResults.Created(locationSlug, response);
     }
 }
 

@@ -2,8 +2,6 @@
 
 
 using Alba;
-using Catalog.Api.Catalog;
-using Microsoft.Extensions.DependencyInjection;
 using Testcontainers.PostgreSql;
 
 namespace Catalog.Tests.Catalog;
@@ -28,7 +26,7 @@ public class CatalogFixture : IAsyncLifetime
 
             config.ConfigureServices(services =>
             {
-                services.AddScoped<INormalizeUrlSegments, TestingNormalizer>();
+
             });
         });
     }
@@ -39,12 +37,4 @@ public class CatalogFixture : IAsyncLifetime
     }
 
 
-}
-
-public class TestingNormalizer : INormalizeUrlSegments
-{
-    public string Normalize(string segment)
-    {
-        return segment;
-    }
 }

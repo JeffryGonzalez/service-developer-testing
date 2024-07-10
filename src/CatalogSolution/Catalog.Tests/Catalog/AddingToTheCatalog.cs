@@ -31,7 +31,7 @@ public class AddingToTheCatalog : IClassFixture<CatalogFixture>
             Vendor = "microsoft",
             Application = "visualstudio",
             AnnualCostPerSeat = 2.99M,
-            Version = "1.91"
+            Version = "1-91"
         };
         var postResponse = await _host.Scenario(api =>
          {
