@@ -62,6 +62,8 @@ public static class ApiExtensions
         IValidator<CreateCatalogItemRequest> validator)
 
     {
+        //TODO: 2.Validating
+        //TODO: 3. How To Test This?
         var validations = await validator.ValidateAsync(request);
         if (!validations.IsValid)
         {

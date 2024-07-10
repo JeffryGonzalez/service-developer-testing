@@ -6,12 +6,17 @@ using MicroElements.Swashbuckle.FluentValidation.AspNetCore;
 using Microsoft.FeatureManagement;
 
 var builder = WebApplication.CreateBuilder(args);
+//TODO: 4. Add Auth.
+builder.Services.AddAuthentication().AddJwtBearer();
+builder.Services.AddAuthorization();
+
 builder.Services.AddFeatureManagement();
 // Add services to the container.
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddScoped<INormalizeUrlSegmentsForTheCatalog, BasicSegmentNormalizer>();
+//TODO: 1. Validations
 builder.Services.AddValidatorsFromAssemblyContaining<CreateCatalogItemRequestValidator>();
 builder.Services.AddFluentValidationRulesToSwagger();
 
@@ -25,6 +30,10 @@ builder.Services.AddMarten(config =>
 
 var app = builder.Build();
 
+//TODO: 5. And This 
+app.UseAuthentication();
+app.UseAuthorization();
+
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
@@ -33,7 +42,7 @@ if (app.Environment.IsDevelopment())
 }
 app.UseSwagger();
 app.UseSwaggerUI();
-// Todo: Talk about Feature Flags Tomorrow.
+
 if (await app.Services.GetRequiredService<IFeatureManager>().IsEnabledAsync("Catalog"))
 {
     app.MapCatalog();
